@@ -1,5 +1,3 @@
-// Coding By IOXhop : http://www.ioxhop.com/
-
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
@@ -13,14 +11,15 @@ const char* password = "panuwat1234567";
 #define mqtt_user "brdhfcif"
 #define mqtt_password "gviTCGqRHgB9"
 
-#define LED_PIN 2
+#define relay1 2
+#define relay2 3
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 void setup() {
-  pinMode(LED_PIN, OUTPUT);
-  
+  pinMode(relay1, OUTPUT);
+  pinMode(relay2, OUTPUT);
   Serial.begin(115200);
   delay(10);
 
@@ -39,7 +38,7 @@ void setup() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-  
+
   client.setServer(mqtt_server, mqtt_port);
   client.setCallback(callback);
 }
@@ -66,13 +65,16 @@ void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print(topic);
   Serial.print("] ");
   String msg = "";
-  int i=0;
-  while (i<length) msg += (char)payload[i++];
+  int i = 0;
+  while (i < length) msg += (char)payload[i++];
+
   if (msg == "GET") {
-    client.publish("/ESP/LED", (digitalRead(LED_PIN) ? "LEDON" : "LEDOFF"));
-    Serial.println("Send !");
+    client.publish("/ESP/LED", (digitalRead(relay1) ? "relay1_on" : "relay1_off"));
+    client.publish("/ESP/LED", (digitalRead(relay2) ? "relay2_on" : "relay2_off"));
     return;
   }
-  digitalWrite(LED_PIN, (msg == "LEDON" ? HIGH : LOW));
+
+  digitalWrite(relay1, (msg == "relay1_on" ? HIGH : LOW));
+  digitalWrite(relay2, (msg == "relay2_on" ? HIGH : LOW));
   Serial.println(msg);
 }
